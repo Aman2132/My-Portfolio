@@ -17,8 +17,8 @@ export default function Skills() {
         <SectionHeading index="03" kicker="What I work with" title="Skills & tools" />
 
         <Reveal className="mb-14 -mx-6 space-y-4 px-6">
-          <Marquee items={[...skills.frontend, ...skills.backend]} speed={32} />
-          <Marquee items={[...skills.backend, ...skills.frontend].reverse()} reverse speed={38} />
+          <Marquee items={[...skills.frontend, ...skills.backend]} baseVelocity={2} />
+          <Marquee items={[...skills.backend, ...skills.frontend].reverse()} baseVelocity={-3} />
         </Reveal>
 
         <RevealGroup className="grid gap-6 md:grid-cols-3" stagger={0.1}>

@@ -9,6 +9,8 @@ export const profile = {
     "Computer Engineering graduate with 2+ years of experience building production Java and Node.js backends, IoT systems, and modern frontends with Angular, React, and Next.js. I like owning things end to end — from schema and transaction logic to the pixels that ship.",
   longSummary:
     "I'm a full stack developer at Mentor Friends, where I review code, help ship production-ready applications, and mentor newer engineers. My core strength is backend systems — transaction management, payment gateway integrations, and third-party API work — but I move comfortably across the stack into React, Next.js, and Angular frontends. Outside of client work I build IoT prototypes and mobile apps for fun.",
+  statement:
+    "Transaction systems, payment gateways, and the interfaces on top of them — built end to end.",
 };
 
 export type Experience = {

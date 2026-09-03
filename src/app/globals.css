@@ -110,6 +110,20 @@ body {
   animation: blink 1s step-end infinite;
 }
 
+@keyframes cue-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.cue-enter {
+  animation: cue-in 0.8s ease 1.2s both;
+}
+
 @keyframes float-slow {
   0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
   50% { transform: translate3d(0, -22px, 0) rotate(4deg); }

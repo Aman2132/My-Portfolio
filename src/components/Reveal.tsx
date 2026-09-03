@@ -11,11 +11,13 @@ type RevealProps = {
 };
 
 const base: Variants = {
-  hidden: { opacity: 0, y: 32 },
+  hidden: { opacity: 0, y: 36, scale: 0.97, filter: "blur(6px)" },
   show: (custom: number) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: custom },
+    scale: 1,
+    filter: "blur(0px)",
+    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: custom },
   }),
 };
 
@@ -74,11 +76,13 @@ export function RevealItem({
     <motion.div
       className={className}
       variants={{
-        hidden: { opacity: 0, y },
+        hidden: { opacity: 0, y, scale: 0.96, filter: "blur(5px)" },
         show: {
           opacity: 1,
           y: 0,
-          transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
+          scale: 1,
+          filter: "blur(0px)",
+          transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
         },
       }}
     >
