@@ -1,7 +1,8 @@
 import { profile, experience, projects } from "@/lib/data";
-import { Reveal, RevealGroup, RevealItem } from "@/components/Reveal";
+import { RevealGroup, RevealItem } from "@/components/Reveal";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import SectionHeading from "@/components/SectionHeading";
+import ScrollStory from "@/components/ScrollStory";
 
 const stats = [
   { label: "Years of experience", value: 2, suffix: "+" },
@@ -16,24 +17,21 @@ export default function About() {
       <div className="mx-auto max-w-6xl">
         <SectionHeading index="01" kicker="Who I am" title="About me" />
 
-        <div className="grid gap-16 lg:grid-cols-[1.3fr_1fr]">
-          <Reveal delay={0.1}>
-            <p className="text-2xl leading-relaxed text-foreground/90 sm:text-3xl">
-              {profile.longSummary}
-            </p>
-          </Reveal>
+        <ScrollStory
+          text={profile.longSummary}
+          className="max-w-4xl text-2xl leading-[1.45] font-medium text-foreground sm:text-3xl lg:text-4xl"
+        />
 
-          <RevealGroup className="grid grid-cols-2 gap-6" stagger={0.08}>
-            {stats.map((stat) => (
-              <RevealItem key={stat.label} className="glass rounded-2xl p-6">
-                <div className="font-display text-4xl font-semibold text-gradient">
-                  <AnimatedCounter value={stat.value} suffix={stat.suffix} />
-                </div>
-                <p className="mt-2 text-sm text-muted">{stat.label}</p>
-              </RevealItem>
-            ))}
-          </RevealGroup>
-        </div>
+        <RevealGroup className="mt-24 grid grid-cols-2 gap-6 lg:grid-cols-4" stagger={0.08}>
+          {stats.map((stat) => (
+            <RevealItem key={stat.label} className="glass rounded-2xl p-6">
+              <div className="font-display text-4xl font-semibold text-gradient">
+                <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+              </div>
+              <p className="mt-2 text-sm text-muted">{stat.label}</p>
+            </RevealItem>
+          ))}
+        </RevealGroup>
       </div>
     </section>
   );

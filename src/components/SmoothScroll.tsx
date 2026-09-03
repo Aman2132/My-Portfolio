@@ -23,15 +23,14 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
 
     lenis.on("scroll", ScrollTrigger.update);
 
-    let frameId: number;
     const raf = (time: number) => {
-      lenis.raf(time);
-      frameId = requestAnimationFrame(raf);
+      lenis.raf(time * 1000);
     };
-    frameId = requestAnimationFrame(raf);
+    gsap.ticker.add(raf);
+    gsap.ticker.lagSmoothing(0);
 
     return () => {
-      cancelAnimationFrame(frameId);
+      gsap.ticker.remove(raf);
       lenis.destroy();
     };
   }, []);

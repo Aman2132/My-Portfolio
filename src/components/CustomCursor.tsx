@@ -1,10 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 
+const HOVER_QUERY = "(hover: hover) and (pointer: fine)";
+
+function subscribeToHoverCapability(callback: () => void) {
+  const mql = window.matchMedia(HOVER_QUERY);
+  mql.addEventListener("change", callback);
+  return () => mql.removeEventListener("change", callback);
+}
+
+function useCanHover() {
+  return useSyncExternalStore(
+    subscribeToHoverCapability,
+    () => window.matchMedia(HOVER_QUERY).matches,
+    () => false,
+  );
+}
+
 export default function CustomCursor() {
-  const [enabled, setEnabled] = useState(false);
+  const enabled = useCanHover();
   const [hovering, setHovering] = useState(false);
   const [visible, setVisible] = useState(false);
 
@@ -14,9 +30,7 @@ export default function CustomCursor() {
   const ringY = useSpring(y, { stiffness: 300, damping: 30, mass: 0.6 });
 
   useEffect(() => {
-    const canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-    setEnabled(canHover);
-    if (!canHover) return;
+    if (!enabled) return;
 
     const move = (e: MouseEvent) => {
       x.set(e.clientX);
@@ -37,7 +51,7 @@ export default function CustomCursor() {
       window.removeEventListener("mouseover", onOver);
       document.documentElement.removeEventListener("mouseleave", onLeave);
     };
-  }, [x, y]);
+  }, [x, y, enabled]);
 
   if (!enabled) return null;
 

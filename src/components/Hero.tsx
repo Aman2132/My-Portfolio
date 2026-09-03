@@ -1,19 +1,27 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { profile } from "@/lib/data";
 import MagneticButton from "@/components/MagneticButton";
+import SplitReveal from "@/components/SplitReveal";
 
 const roles = ["Full Stack Developer", "Backend & Node.js", "React / Next.js", "IoT Builder"];
 
 export default function Hero() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const blobARef = useRef<HTMLDivElement>(null);
   const blobBRef = useRef<HTMLDivElement>(null);
   const [roleIndex, setRoleIndex] = useState(0);
   const [display, setDisplay] = useState("");
+
+  // Framer owns the cue's opacity; GSAP can't, because Hero re-renders on every
+  // typewriter tick and framer would overwrite GSAP's inline style.
+  const { scrollY } = useScroll();
+  const cueOpacity = useTransform(scrollY, [0, 260], [1, 0]);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -25,7 +33,6 @@ export default function Hero() {
   useEffect(() => {
     const full = roles[roleIndex];
     let i = 0;
-    setDisplay("");
     const type = setInterval(() => {
       i += 1;
       setDisplay(full.slice(0, i));
@@ -35,27 +42,32 @@ export default function Hero() {
   }, [roleIndex]);
 
   useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
     const ctx = gsap.context(() => {
-      gsap.to(blobARef.current, {
-        yPercent: 22,
-        xPercent: -8,
+      const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top top",
-          end: "bottom top",
+          end: "+=90%",
           scrub: 1,
+          pin: true,
+          anticipatePin: 1,
         },
       });
-      gsap.to(blobBRef.current, {
-        yPercent: -18,
-        xPercent: 10,
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top top",
-          end: "bottom top",
-          scrub: 1,
-        },
-      });
+
+      tl.to(blobARef.current, { yPercent: 30, xPercent: -14, scale: 1.15, ease: "none", duration: 0.9 }, 0)
+        .to(blobBRef.current, { yPercent: -24, xPercent: 14, scale: 1.1, ease: "none", duration: 0.9 }, 0);
+
+      // contentRef wraps the whole hero block, including the SplitReveal heading.
+      // Don't also tween the heading's own [data-split-word] spans here — SplitReveal
+      // already owns opacity/yPercent on those, and a second GSAP tween on the same
+      // properties fights it for control (the later-created tween wins and freezes
+      // the words at their captured start state, so the entrance never plays).
+      tl.to(
+        contentRef.current,
+        { scale: 0.88, y: -40, filter: "blur(8px)", ease: "none", duration: 0.9 },
+        0,
+      ).to(contentRef.current, { opacity: 0, ease: "none", duration: 0.3 }, 0.6);
     }, sectionRef);
     return () => ctx.revert();
   }, []);
@@ -68,15 +80,14 @@ export default function Hero() {
     >
       <div
         ref={blobARef}
-        className="animate-float-slow pointer-events-none absolute -top-40 -left-32 h-[28rem] w-[28rem] rounded-full bg-accent-2/25 blur-[110px]"
+        className="pointer-events-none absolute -top-40 -left-32 h-[28rem] w-[28rem] rounded-full bg-accent-2/25 blur-[110px]"
       />
       <div
         ref={blobBRef}
-        className="animate-float-slow pointer-events-none absolute top-1/3 -right-24 h-[26rem] w-[26rem] rounded-full bg-accent/20 blur-[110px]"
-        style={{ animationDelay: "-4s" }}
+        className="pointer-events-none absolute top-1/3 -right-24 h-[26rem] w-[26rem] rounded-full bg-accent/20 blur-[110px]"
       />
 
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+      <div ref={contentRef} className="mx-auto flex w-full max-w-6xl flex-col gap-8">
         <motion.span
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -86,17 +97,13 @@ export default function Hero() {
           Available for new work · {profile.location}
         </motion.span>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="font-display text-5xl leading-[1.05] font-semibold tracking-tight sm:text-7xl lg:text-8xl"
-        >
-          Hi, I&apos;m{" "}
-          <span className="text-gradient">{profile.name.split(" ")[0]}</span>
-          <br />
-          I build for the web.
-        </motion.h1>
+        <h1 className="font-display text-5xl leading-[1.05] font-semibold tracking-tight sm:text-7xl lg:text-8xl">
+          <span className="flex flex-wrap items-baseline gap-x-5">
+            <SplitReveal text="Hi, I'm" stagger={0.05} />
+            <SplitReveal text={profile.name.split(" ")[0]} className="text-gradient" stagger={0.05} />
+          </span>
+          <SplitReveal text="I build for the web." stagger={0.028} />
+        </h1>
 
         <motion.div
           initial={{ opacity: 0 }}
@@ -137,18 +144,18 @@ export default function Hero() {
       </div>
 
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 0.8 }}
-        className="absolute bottom-10 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-muted"
+        style={{ opacity: cueOpacity }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2"
       >
-        <span className="font-mono text-[10px] tracking-[0.3em] uppercase">Scroll</span>
-        <div className="flex h-9 w-5 justify-center rounded-full border border-border p-1">
-          <motion.span
-            className="h-1.5 w-1.5 rounded-full bg-accent"
-            animate={{ y: [0, 14, 0] }}
-            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-          />
+        <div className="cue-enter flex flex-col items-center gap-2 text-muted">
+          <span className="font-mono text-[10px] tracking-[0.3em] uppercase">Scroll</span>
+          <div className="flex h-9 w-5 justify-center rounded-full border border-border p-1">
+            <motion.span
+              className="h-1.5 w-1.5 rounded-full bg-accent"
+              animate={{ y: [0, 14, 0] }}
+              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </div>
         </div>
       </motion.div>
     </section>

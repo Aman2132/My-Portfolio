@@ -1,43 +1,59 @@
 "use client";
 
+import { useRef } from "react";
+import {
+  motion,
+  useAnimationFrame,
+  useMotionValue,
+  useScroll,
+  useSpring,
+  useTransform,
+  useVelocity,
+  wrap,
+} from "framer-motion";
+
 export default function Marquee({
   items,
-  reverse = false,
-  speed = 28,
+  baseVelocity = 2,
 }: {
   items: string[];
-  reverse?: boolean;
-  speed?: number;
+  baseVelocity?: number;
 }) {
-  const loop = [...items, ...items];
+  const baseX = useMotionValue(0);
+  const { scrollY } = useScroll();
+  const scrollVelocity = useVelocity(scrollY);
+  const smoothVelocity = useSpring(scrollVelocity, { damping: 50, stiffness: 400 });
+  const velocityFactor = useTransform(smoothVelocity, [0, 1200], [0, 4], { clamp: false });
+  const skewX = useTransform(smoothVelocity, [-2500, 2500], [-6, 6], { clamp: true });
+
+  const x = useTransform(baseX, (v) => `${wrap(-50, 0, v)}%`);
+  const directionRef = useRef(1);
+
+  useAnimationFrame((_, delta) => {
+    let moveBy = directionRef.current * baseVelocity * (delta / 1000);
+    const factor = velocityFactor.get();
+
+    if (factor < 0) directionRef.current = -1;
+    else if (factor > 0) directionRef.current = 1;
+
+    moveBy += directionRef.current * moveBy * factor;
+    baseX.set(baseX.get() + moveBy);
+  });
+
+  const loop = [...items, ...items, ...items, ...items];
+
   return (
     <div className="relative overflow-hidden py-2 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-      <div
-        className="flex w-max gap-4"
-        style={{
-          animation: `marquee ${speed}s linear infinite`,
-          animationDirection: reverse ? "reverse" : "normal",
-        }}
-      >
+      <motion.div className="flex w-max gap-4" style={{ x, skewX }}>
         {loop.map((item, i) => (
           <span
             key={`${item}-${i}`}
-            className="glass rounded-full px-5 py-2 font-mono text-sm text-foreground/85 whitespace-nowrap"
+            className="glass rounded-full px-5 py-2 font-mono text-sm whitespace-nowrap text-foreground/85"
           >
             {item}
           </span>
         ))}
-      </div>
-      <style jsx>{`
-        @keyframes marquee {
-          from {
-            transform: translateX(0);
-          }
-          to {
-            transform: translateX(-50%);
-          }
-        }
-      `}</style>
+      </motion.div>
     </div>
   );
 }
