@@ -1,163 +1,173 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useRef } from "react";
+import { ArrowDownRight, ArrowRight, ArrowDown } from "lucide-react";
+import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
+import { useApp } from "@/components/providers/AppProvider";
+import { useLocalTime } from "@/lib/useLocalTime";
 import { profile } from "@/lib/data";
-import MagneticButton from "@/components/MagneticButton";
-import SplitReveal from "@/components/SplitReveal";
+import TextReveal from "@/components/ui/TextReveal";
+import RollText from "@/components/ui/RollText";
+import Magnetic from "@/components/ui/Magnetic";
 
-const roles = ["Full Stack Developer", "Backend & Node.js", "React / Next.js", "IoT Builder"];
+const [firstName, lastName] = profile.name.split(" ");
+const roleWords = profile.role.split(" ");
+const roleLast = roleWords.pop();
+const roleFirst = roleWords.join(" ");
 
 export default function Hero() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const blobARef = useRef<HTMLDivElement>(null);
-  const blobBRef = useRef<HTMLDivElement>(null);
-  const [roleIndex, setRoleIndex] = useState(0);
-  const [display, setDisplay] = useState("");
+  const { introDone, scrollTo } = useApp();
+  const root = useRef<HTMLElement>(null);
+  const time = useLocalTime();
 
-  // Framer owns the cue's opacity; GSAP can't, because Hero re-renders on every
-  // typewriter tick and framer would overwrite GSAP's inline style.
-  const { scrollY } = useScroll();
-  const cueOpacity = useTransform(scrollY, [0, 260], [1, 0]);
+  useGSAP(
+    () => {
+      if (prefersReducedMotion()) return;
 
-  useEffect(() => {
-    const id = setInterval(() => {
-      setRoleIndex((i) => (i + 1) % roles.length);
-    }, 2600);
-    return () => clearInterval(id);
-  }, []);
+      if (!introDone) {
+        gsap.set("[data-hero-fade]", { autoAlpha: 0, y: 24 });
+        gsap.set("[data-hero-badge]", { scale: 0.4, rotate: -120, autoAlpha: 0 });
+        gsap.set("[data-hero-rule]", { scaleX: 0 });
+        return;
+      }
 
-  useEffect(() => {
-    const full = roles[roleIndex];
-    let i = 0;
-    const type = setInterval(() => {
-      i += 1;
-      setDisplay(full.slice(0, i));
-      if (i >= full.length) clearInterval(type);
-    }, 32);
-    return () => clearInterval(type);
-  }, [roleIndex]);
+      gsap
+        .timeline({ defaults: { ease: "expo.out" } })
+        .to("[data-hero-rule]", { scaleX: 1, duration: 1.4, ease: "expo.inOut" }, 0.1)
+        .to("[data-hero-fade]", { autoAlpha: 1, y: 0, duration: 1.2, stagger: 0.07 }, 0.55)
+        .to("[data-hero-badge]", { scale: 1, rotate: 0, autoAlpha: 1, duration: 1.6 }, 0.7);
 
-  useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top top",
-          end: "+=90%",
-          scrub: 1,
-          pin: true,
-          anticipatePin: 1,
-        },
-      });
-
-      tl.to(blobARef.current, { yPercent: 30, xPercent: -14, scale: 1.15, ease: "none", duration: 0.9 }, 0)
-        .to(blobBRef.current, { yPercent: -24, xPercent: 14, scale: 1.1, ease: "none", duration: 0.9 }, 0);
-
-      // contentRef wraps the whole hero block, including the SplitReveal heading.
-      // Don't also tween the heading's own [data-split-word] spans here — SplitReveal
-      // already owns opacity/yPercent on those, and a second GSAP tween on the same
-      // properties fights it for control (the later-created tween wins and freezes
-      // the words at their captured start state, so the entrance never plays).
-      tl.to(
-        contentRef.current,
-        { scale: 0.88, y: -40, filter: "blur(8px)", ease: "none", duration: 0.9 },
-        0,
-      ).to(contentRef.current, { opacity: 0, ease: "none", duration: 0.3 }, 0.6);
-    }, sectionRef);
-    return () => ctx.revert();
-  }, []);
+      const scrub = { trigger: root.current, start: "top top", end: "bottom top", scrub: true };
+      gsap.to("[data-name-a]", { xPercent: -14, ease: "none", scrollTrigger: scrub });
+      gsap.to("[data-name-b]", { xPercent: 10, ease: "none", scrollTrigger: scrub });
+      gsap.to("[data-hero-lift]", { yPercent: -30, autoAlpha: 0, ease: "none", scrollTrigger: scrub });
+      gsap.to("[data-hero-badge-wrap]", { yPercent: 120, rotate: 90, ease: "none", scrollTrigger: scrub });
+    },
+    { scope: root, dependencies: [introDone], revertOnUpdate: true },
+  );
 
   return (
     <section
       id="top"
-      ref={sectionRef}
-      className="relative flex min-h-[100svh] items-center overflow-hidden px-6"
+      ref={root}
+      className="relative flex min-h-[100svh] flex-col justify-between overflow-hidden px-5 pt-20 pb-6 md:px-10 md:pt-24 md:pb-8"
     >
-      <div
-        ref={blobARef}
-        className="pointer-events-none absolute -top-40 -left-32 h-[28rem] w-[28rem] rounded-full bg-accent-2/25 blur-[110px]"
-      />
-      <div
-        ref={blobBRef}
-        className="pointer-events-none absolute top-1/3 -right-24 h-[26rem] w-[26rem] rounded-full bg-accent/20 blur-[110px]"
-      />
-
-      <div ref={contentRef} className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-        <motion.span
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="glass w-fit rounded-full px-4 py-1.5 font-mono text-xs tracking-wide text-accent-3"
+      <div>
+        <div
+          data-hero-lift
+          className="grid grid-cols-2 gap-y-2 font-mono text-[11px] tracking-[0.16em] text-muted uppercase md:grid-cols-4"
         >
-          Available for new work · {profile.location}
-        </motion.span>
-
-        <h1 className="font-display text-5xl leading-[1.05] font-semibold tracking-tight sm:text-7xl lg:text-8xl">
-          <span className="flex flex-wrap items-baseline gap-x-5">
-            <SplitReveal text="Hi, I'm" stagger={0.05} />
-            <SplitReveal text={profile.name} className="text-accent" stagger={0.05} />
+          <span data-hero-fade>Portfolio ©{new Date().getFullYear()}</span>
+          <span data-hero-fade className="text-right md:text-left">
+            {profile.location.split(",")[0]}, Nepal
           </span>
-          <SplitReveal text="Full Stack Developer." stagger={0.028} />
-        </h1>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="font-mono text-lg text-muted sm:text-xl"
-        >
-          <span className="text-foreground">{display}</span>
-          <span className="caret-blink text-accent">|</span>
-        </motion.div>
-
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.5 }}
-          className="max-w-xl text-base text-muted sm:text-lg"
-        >
-          {profile.summary}
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.65 }}
-          className="flex flex-wrap items-center gap-4 pt-2"
-        >
-          <MagneticButton as="a" href="#projects">
-            <span className="font-display inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-background transition-transform">
-              View my work
-            </span>
-          </MagneticButton>
-          <MagneticButton as="a" href="/resume.pdf">
-            <span className="glass font-display inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-foreground">
-              Download resume
-            </span>
-          </MagneticButton>
-        </motion.div>
+          <span data-hero-fade className="tabular-nums">
+            Local time {time || "--:--"}
+          </span>
+          <span data-hero-fade className="flex items-center justify-end gap-2 text-ink">
+            <span className="animate-pulse-dot h-2 w-2 rounded-full bg-accent" />
+            Available for new work
+          </span>
+        </div>
+        <div data-hero-rule className="mt-5 h-px w-full origin-left bg-line" />
       </div>
 
-      <motion.div
-        style={{ opacity: cueOpacity }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2"
+      <div className="relative my-8">
+      <h1
+        aria-label={`${profile.name}, ${profile.role}`}
+        className="text-[min(24vw,29svh)] leading-[0.86] font-semibold tracking-[-0.055em] uppercase"
       >
-        <div className="cue-enter flex flex-col items-center gap-2 text-muted">
-          <span className="font-mono text-[10px] tracking-[0.3em] uppercase">Scroll</span>
-          <div className="flex h-9 w-5 justify-center rounded-full border border-border p-1">
-            <motion.span
-              className="h-1.5 w-1.5 rounded-full bg-accent"
-              animate={{ y: [0, 14, 0] }}
-              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </div>
+        <span data-name-a className="block">
+          <TextReveal intro as="span" type="chars" className="block" stagger={0.05} duration={1.4}>
+            {firstName}
+          </TextReveal>
+        </span>
+
+        <span className="mt-[0.04em] flex flex-col-reverse gap-6 md:flex-row md:items-end md:justify-between">
+          <span className="block font-serif text-[clamp(1.75rem,3.4vw,3.5rem)] leading-[0.95] font-normal tracking-normal normal-case italic">
+            <TextReveal intro as="span" type="words" className="block" delay={0.35}>
+              {roleFirst}
+            </TextReveal>
+            <TextReveal intro as="span" type="words" className="block" delay={0.45}>
+              {roleLast}
+            </TextReveal>
+          </span>
+          <span data-name-b className="block self-end md:self-auto">
+            <TextReveal intro as="span" type="chars" className="block" delay={0.12} stagger={0.05} duration={1.4}>
+              {lastName}
+            </TextReveal>
+          </span>
+        </span>
+      </h1>
+
+        <div data-hero-badge-wrap className="absolute top-[4%] right-0 hidden sm:block">
+          <a
+            data-hero-badge
+            href="#contact"
+            onClick={(e) => {
+              e.preventDefault();
+              scrollTo("#contact");
+            }}
+            data-cursor-label="Say hi"
+            aria-label="Open to work — get in touch"
+            className="group relative flex h-32 w-32 items-center justify-center md:h-40 md:w-40"
+          >
+            <svg viewBox="0 0 100 100" className="animate-spin-slow absolute inset-0 h-full w-full" aria-hidden="true">
+              <defs>
+                <path id="badge-circle" d="M50,50 m-39,0 a39,39 0 1,1 78,0 a39,39 0 1,1 -78,0" />
+              </defs>
+              <text className="fill-ink font-mono text-[8.4px] tracking-[0.22em] uppercase">
+                <textPath href="#badge-circle">Open to work · Full stack developer ·</textPath>
+              </text>
+            </svg>
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-paper transition-transform duration-500 ease-[var(--ease-out)] group-hover:scale-125 md:h-14 md:w-14">
+              <ArrowDownRight className="h-5 w-5 transition-transform duration-500 group-hover:-rotate-45" />
+            </span>
+          </a>
         </div>
-      </motion.div>
+      </div>
+
+      <div data-hero-lift className="grid items-end gap-8 md:grid-cols-12">
+        <p data-hero-fade className="max-w-xl text-base leading-relaxed text-ink/80 md:col-span-6 md:text-[17px]">
+          {profile.summary}
+        </p>
+
+        <div data-hero-fade className="flex flex-wrap items-center gap-3 md:col-span-4 md:col-start-7 md:justify-center">
+          <Magnetic>
+            <a
+              href="#projects"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollTo("#projects");
+              }}
+              className="group inline-flex items-center gap-3 rounded-full bg-ink px-6 py-4 text-sm font-medium text-paper"
+            >
+              <RollText text="View my work" />
+              <ArrowRight className="h-4 w-4 transition-transform duration-500 group-hover:translate-x-1" />
+            </a>
+          </Magnetic>
+          <Magnetic>
+            <a
+              href="/resume.pdf"
+              download
+              className="group inline-flex items-center gap-3 rounded-full border border-ink/25 px-6 py-4 text-sm font-medium transition-colors duration-500 hover:border-ink hover:bg-ink hover:text-paper"
+            >
+              <RollText text="Download resume" />
+              <ArrowDown className="h-4 w-4" />
+            </a>
+          </Magnetic>
+        </div>
+
+        <div
+          data-hero-fade
+          className="hidden items-center justify-end gap-3 font-mono text-[11px] tracking-[0.16em] text-muted uppercase md:col-span-2 md:flex"
+        >
+          Scroll
+          <span className="relative h-10 w-px overflow-hidden bg-line">
+            <span className="absolute inset-x-0 top-0 h-1/2 animate-[scroll-line_1.8s_var(--ease-in-out)_infinite] bg-ink" />
+          </span>
+        </div>
+      </div>
     </section>
   );
 }

@@ -1,229 +1,182 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ExternalLink } from "lucide-react";
+import { useRef } from "react";
+import { ArrowUpRight } from "lucide-react";
+import { gsap, prefersReducedMotion, useGSAP } from "@/lib/gsap";
 import { experience } from "@/lib/data";
-import { Reveal } from "@/components/Reveal";
-import SectionHeading from "@/components/SectionHeading";
-import TiltCard from "@/components/TiltCard";
+import SectionLabel from "@/components/ui/SectionLabel";
+import TextReveal from "@/components/ui/TextReveal";
 
 export default function Experience() {
-  const job = experience[0];
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const lineRef = useRef<HTMLDivElement>(null);
-  const pinRef = useRef<HTMLDivElement>(null);
-  const progressRef = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(0);
+  const root = useRef<HTMLElement>(null);
 
-  useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
+  useGSAP(
+    () => {
+      if (prefersReducedMotion()) return;
 
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        lineRef.current,
-        { scaleY: 0 },
-        {
-          scaleY: 1,
-          ease: "none",
-          scrollTrigger: {
-            trigger: headerRef.current,
-            start: "top 75%",
-            end: "bottom 65%",
-            scrub: 0.6,
-          },
-        },
-      );
-    }, sectionRef);
-
-    const mm = gsap.matchMedia();
-
-    mm.add("(min-width: 1024px)", () => {
-      const cards = pinRef.current?.querySelectorAll<HTMLElement>("[data-client-card]");
-      if (!cards || cards.length === 0) return;
-
-      gsap.set(cards, { autoAlpha: 0, yPercent: 8, scale: 0.97 });
-      gsap.set(cards[0], { autoAlpha: 1, yPercent: 0, scale: 1 });
-
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: pinRef.current,
-          start: "top top",
-          end: `+=${cards.length * 65}%`,
-          scrub: 0.5,
-          pin: true,
-          anticipatePin: 1,
-          onUpdate: (self) => {
-            // Progress maps across cards.length - 1 transitions, not cards.length steps.
-            const idx = Math.min(
-              cards.length - 1,
-              Math.max(0, Math.round(self.progress * (cards.length - 1))),
-            );
-            setActive((prev) => (prev === idx ? prev : idx));
-            if (progressRef.current) {
-              progressRef.current.style.transform = `scaleX(${self.progress})`;
-            }
-          },
-        },
+      gsap.from("[data-exp-meta]", {
+        autoAlpha: 0,
+        y: 20,
+        duration: 1,
+        stagger: 0.08,
+        ease: "expo.out",
+        scrollTrigger: { trigger: "[data-exp-head]", start: "top 80%", once: true },
       });
 
-      for (let i = 1; i < cards.length; i += 1) {
-        tl.to(cards[i - 1], {
+      gsap.utils.toArray<HTMLElement>("[data-exp-bullet]").forEach((el) => {
+        gsap.from(el, {
           autoAlpha: 0,
-          yPercent: -8,
-          scale: 0.97,
-          duration: 0.4,
-          ease: "power2.in",
-        }).to(
-          cards[i],
-          { autoAlpha: 1, yPercent: 0, scale: 1, duration: 0.4, ease: "power2.out" },
-          ">-0.08",
-        );
-      }
-    });
-
-    mm.add("(max-width: 1023px)", () => {
-      const cards = pinRef.current?.querySelectorAll<HTMLElement>("[data-client-card]");
-      if (!cards || cards.length === 0) return;
-
-      gsap.from(cards, {
-        opacity: 0,
-        y: 30,
-        duration: 0.7,
-        stagger: 0.12,
-        ease: "power3.out",
-        scrollTrigger: { trigger: pinRef.current, start: "top 80%" },
+          y: 40,
+          duration: 1.1,
+          ease: "expo.out",
+          scrollTrigger: { trigger: el, start: "top 90%", once: true },
+        });
       });
-    });
 
-    return () => {
-      ctx.revert();
-      mm.revert();
-    };
-  }, []);
+      gsap.utils.toArray<HTMLElement>("[data-client-row]").forEach((row) => {
+        const tl = gsap.timeline({ scrollTrigger: { trigger: row, start: "top 92%", once: true } });
+        tl.from(row.querySelector("[data-row-rule]"), { scaleX: 0, duration: 1.3, ease: "expo.inOut" }).from(
+          row.querySelectorAll("[data-row-item]"),
+          { yPercent: 100, autoAlpha: 0, duration: 1, stagger: 0.06, ease: "expo.out" },
+          "-=0.9",
+        );
+      });
+
+      gsap.to("[data-exp-watermark]", {
+        xPercent: -18,
+        ease: "none",
+        scrollTrigger: { trigger: root.current, start: "top bottom", end: "bottom top", scrub: true },
+      });
+    },
+    { scope: root },
+  );
 
   return (
-    <section id="experience" ref={sectionRef} className="relative px-6 pt-32 pb-0">
-      <div className="mx-auto max-w-6xl">
-        <SectionHeading index="02" kicker="Where I've worked" title="Experience" />
+    <section id="experience" ref={root} className="relative overflow-hidden bg-ink px-5 py-28 text-paper md:px-10 md:py-44">
+      <span
+        data-exp-watermark
+        aria-hidden="true"
+        className="pointer-events-none absolute top-10 left-0 text-[22vw] leading-none font-semibold tracking-[-0.06em] whitespace-nowrap text-paper/[0.04] uppercase"
+      >
+        Experience — Experience
+      </span>
 
-        <div ref={headerRef} className="relative pl-10 sm:pl-14">
-          <div className="absolute top-1 left-0 h-full w-px bg-border sm:left-[7px]">
-            <div
-              ref={lineRef}
-              className="h-full w-px origin-top bg-gradient-to-b from-accent via-accent-2 to-accent-3"
-            />
-          </div>
-          <span className="absolute top-0.5 -left-[5px] h-3 w-3 rounded-full bg-accent shadow-[0_0_16px_2px_rgba(110,231,255,0.6)] sm:left-[2.5px]" />
-
-          <Reveal>
-            <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <h3 className="font-display text-2xl font-semibold sm:text-3xl">
-                {job.role} · <span className="text-accent">{job.company}</span>
-              </h3>
-              {job.current && (
-                <span className="glass flex items-center gap-2 rounded-full px-3 py-1 font-mono text-xs text-accent-3">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent-3" />
-                  Current
-                </span>
-              )}
+      {experience.map((job) => (
+        <div key={job.company} className="relative">
+          <div data-exp-head className="grid gap-10 md:grid-cols-12">
+            <div className="md:col-span-3">
+              <SectionLabel index="02" label="Experience" inverted />
             </div>
-            <p className="mt-1 font-mono text-sm text-muted">
-              {job.period} · {job.location}
-            </p>
+            <div className="md:col-span-9">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 font-mono text-[11px] tracking-[0.16em] text-muted-inv uppercase">
+                <span data-exp-meta>{job.period}</span>
+                <span data-exp-meta>{job.location}</span>
+                {job.current && (
+                  <span data-exp-meta className="flex items-center gap-2 text-paper">
+                    <span className="animate-pulse-dot h-2 w-2 rounded-full bg-accent" />
+                    Current role
+                  </span>
+                )}
+              </div>
+              <TextReveal
+                as="h2"
+                type="chars"
+                className="mt-6 text-[clamp(3.25rem,10vw,10rem)] leading-[0.9] font-semibold tracking-[-0.05em]"
+              >
+                {job.company}
+              </TextReveal>
+              <TextReveal as="p" className="mt-5 font-serif text-[clamp(1.5rem,2.6vw,2.5rem)] italic" delay={0.2}>
+                {job.role}
+              </TextReveal>
+            </div>
+          </div>
 
-            <ul className="mt-6 space-y-3">
-              {job.bullets.map((bullet) => (
-                <li key={bullet} className="flex gap-3 text-foreground/85">
-                  <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-accent-2" />
-                  {bullet}
+          <ol className="mt-20 grid gap-x-10 gap-y-10 md:grid-cols-12 md:gap-y-14">
+            {job.bullets.map((bullet, i) => (
+              <li
+                data-exp-bullet
+                key={bullet}
+                className={`flex gap-5 border-t border-line-inv pt-6 md:col-span-4 ${
+                  i % 2 === 0 ? "md:col-start-4" : "md:col-start-8"
+                }`}
+              >
+                <span className="font-mono text-xs text-accent">0{i + 1}</span>
+                <p className="text-lg leading-relaxed text-paper/85">{bullet}</p>
+              </li>
+            ))}
+          </ol>
+
+          <div className="mt-28 md:mt-40">
+            <div className="flex items-end justify-between gap-6">
+              <TextReveal
+                as="h3"
+                type="words"
+                className="text-[clamp(2.25rem,5vw,4.5rem)] leading-none font-semibold tracking-[-0.04em]"
+              >
+                Client work
+              </TextReveal>
+              <p className="font-mono text-[11px] tracking-[0.16em] text-muted-inv uppercase">
+                {String(job.clientWork.length).padStart(2, "0")} products
+              </p>
+            </div>
+
+            <ul className="mt-10 border-b border-line-inv">
+              {job.clientWork.map((client, i) => (
+                <li key={client.name} data-client-row className="relative">
+                  <div data-row-rule className="absolute top-0 left-0 h-px w-full origin-left bg-line-inv" />
+                  <a
+                    href={client.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-cursor-label="Visit"
+                    className="group relative block overflow-hidden"
+                  >
+                    <span className="absolute inset-0 origin-bottom scale-y-0 bg-accent transition-transform duration-700 ease-[var(--ease-out)] group-hover:scale-y-100" />
+                    <div className="relative grid grid-cols-12 items-center gap-4 py-7 md:py-9">
+                      <span className="col-span-2 overflow-hidden md:col-span-1">
+                        <span data-row-item className="block font-mono text-xs text-muted-inv transition-colors group-hover:text-paper">
+                          0{i + 1}
+                        </span>
+                      </span>
+                      <span className="col-span-10 overflow-hidden md:col-span-5">
+                        <span data-row-item className="block">
+                          <span className="block text-[clamp(1.75rem,3.6vw,3.25rem)] leading-tight font-semibold tracking-[-0.03em] transition-transform duration-700 ease-[var(--ease-out)] group-hover:translate-x-3">
+                            {client.name}
+                          </span>
+                        </span>
+                      </span>
+                      <span className="col-span-10 col-start-3 overflow-hidden md:col-span-5 md:col-start-auto">
+                        <span data-row-item className="flex flex-wrap gap-2">
+                          {client.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="rounded-full border border-line-inv px-3 py-1 font-mono text-[10px] tracking-[0.12em] uppercase transition-colors group-hover:border-paper/50"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </span>
+                      </span>
+                      <span className="col-span-12 flex justify-end md:col-span-1">
+                        <span className="flex h-11 w-11 items-center justify-center rounded-full border border-line-inv transition-all duration-500 group-hover:rotate-45 group-hover:border-paper group-hover:bg-paper group-hover:text-accent">
+                          <ArrowUpRight className="h-4 w-4" />
+                        </span>
+                      </span>
+                    </div>
+                    <div className="relative grid grid-rows-[0fr] transition-[grid-template-rows] duration-700 ease-[var(--ease-out)] group-hover:grid-rows-[1fr] [@media(hover:none)]:grid-rows-[1fr]">
+                      <div className="overflow-hidden">
+                        <p className="max-w-2xl pb-8 pl-[16.66%] text-base leading-relaxed text-paper/85 md:pl-[8.33%] md:text-lg">
+                          {client.description}
+                        </p>
+                      </div>
+                    </div>
+                  </a>
                 </li>
               ))}
             </ul>
-          </Reveal>
-        </div>
-
-        <div ref={pinRef} className="mt-20 pb-24 lg:flex lg:h-screen lg:items-center lg:pb-0">
-          <div className="grid w-full gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
-            <div>
-              <p className="font-mono text-xs tracking-[0.25em] text-accent uppercase">
-                Selected client work
-              </p>
-
-              <div className="mt-6 flex items-baseline gap-3">
-                <span className="font-display text-gradient text-6xl font-semibold tabular-nums">
-                  {String(active + 1).padStart(2, "0")}
-                </span>
-                <span className="font-mono text-sm text-muted">
-                  / {String(job.clientWork.length).padStart(2, "0")}
-                </span>
-              </div>
-
-              <div className="mt-6 h-px w-full overflow-hidden bg-border">
-                <div
-                  ref={progressRef}
-                  className="h-full w-full origin-left scale-x-0 bg-gradient-to-r from-accent to-accent-2"
-                />
-              </div>
-
-              <ul className="mt-8 hidden space-y-3 lg:block">
-                {job.clientWork.map((client, i) => (
-                  <li
-                    key={client.name}
-                    className={`flex items-center font-mono text-sm transition-colors duration-300 ${
-                      i === active ? "text-foreground" : "text-muted/40"
-                    }`}
-                  >
-                    <span className="inline-block w-5 text-accent">
-                      {i === active ? "▸" : ""}
-                    </span>
-                    {client.name}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="relative space-y-6 lg:h-[430px] lg:space-y-0">
-              {job.clientWork.map((client) => (
-                <div key={client.name} data-client-card className="lg:absolute lg:inset-0">
-                  <TiltCard className="glass flex h-full flex-col rounded-2xl p-7 lg:p-9">
-                    <div className="flex items-start justify-between gap-3">
-                      <h4 className="font-display text-xl font-semibold lg:text-2xl">
-                        {client.name}
-                      </h4>
-                      <a
-                        href={client.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        data-cursor-hover
-                        className="shrink-0 rounded-full border border-border p-2 text-muted transition-colors hover:border-accent hover:text-accent"
-                        aria-label={`Visit ${client.name}`}
-                      >
-                        <ExternalLink size={14} />
-                      </a>
-                    </div>
-                    <p className="mt-4 leading-relaxed text-muted lg:text-lg">
-                      {client.description}
-                    </p>
-                    <div className="mt-auto flex flex-wrap gap-2 pt-6">
-                      {client.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded-full border border-border px-3 py-1 font-mono text-[11px] text-foreground/70"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </TiltCard>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
-      </div>
+      ))}
     </section>
   );
 }
