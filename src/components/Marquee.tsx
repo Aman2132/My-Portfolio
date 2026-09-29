@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import {
   motion,
   useAnimationFrame,
@@ -28,8 +28,11 @@ export default function Marquee({
 
   const x = useTransform(baseX, (v) => `${wrap(-50, 0, v)}%`);
   const directionRef = useRef(1);
+  const [paused, setPaused] = useState(false);
 
   useAnimationFrame((_, delta) => {
+    if (paused) return;
+
     let moveBy = directionRef.current * baseVelocity * (delta / 1000);
     const factor = velocityFactor.get();
 
@@ -43,7 +46,11 @@ export default function Marquee({
   const loop = [...items, ...items, ...items, ...items];
 
   return (
-    <div className="relative overflow-hidden py-2 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+    <div
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      className="relative overflow-hidden py-2 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
+    >
       <motion.div className="flex w-max gap-4" style={{ x, skewX }}>
         {loop.map((item, i) => (
           <span

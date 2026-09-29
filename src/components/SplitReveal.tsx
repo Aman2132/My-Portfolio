@@ -46,12 +46,15 @@ export default function SplitReveal({
   }, [stagger, text]);
 
   return (
-    <Tag ref={ref as never} className={className}>
+    <Tag ref={ref as never}>
       {words.map((word, i) => (
         <span key={`${word}-${i}`} className="inline-block overflow-hidden pb-1 align-bottom">
-          <span data-split-word className="inline-block will-change-transform">
+          <span
+            data-split-word
+            className={`inline-block will-change-transform ${className ?? ""}`}
+          >
             {word}
-            {i < words.length - 1 ? " " : ""}
+            {i < words.length - 1 ? " " : ""}
           </span>
         </span>
       ))}

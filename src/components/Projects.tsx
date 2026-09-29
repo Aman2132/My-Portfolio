@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Award, Sparkles } from "lucide-react";
+import { Award, ExternalLink, Sparkles } from "lucide-react";
 import { projects } from "@/lib/data";
 import SectionHeading from "@/components/SectionHeading";
 import TiltCard from "@/components/TiltCard";
@@ -98,7 +98,21 @@ export default function Projects() {
               </span>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h3 className="font-display text-xl font-semibold">{project.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-display text-xl font-semibold">{project.name}</h3>
+                    {project.url && (
+                      <a
+                        href={project.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-cursor-hover
+                        className="shrink-0 rounded-full border border-border p-1.5 text-muted transition-colors hover:border-accent hover:text-accent"
+                        aria-label={`View ${project.name} on GitHub`}
+                      >
+                        <ExternalLink size={12} />
+                      </a>
+                    )}
+                  </div>
                   <p className="mt-1 font-mono text-xs text-muted">
                     {project.period} · {project.location}
                   </p>
