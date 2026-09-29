@@ -1,50 +1,50 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
+import { Inter_Tight, Instrument_Serif, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import SmoothScroll from "@/components/SmoothScroll";
-import CustomCursor from "@/components/CustomCursor";
-import ScrollProgress from "@/components/ScrollProgress";
-import ScrollMood from "@/components/ScrollMood";
-import SectionDots from "@/components/SectionDots";
+import AppProvider from "@/components/providers/AppProvider";
+import Preloader from "@/components/Preloader";
+import Cursor from "@/components/Cursor";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const interTight = Inter_Tight({
+  variable: "--font-inter-tight",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
   subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
 });
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
   title: "Aman Joshi — Full Stack Developer",
   description:
-    "Portfolio of Aman Joshi, a full stack developer specializing in Java, Node.js, React, Next.js, and IoT systems.",
+    "Portfolio of Aman Joshi, a full stack developer specializing in Java, Node.js, React, Next.js, payment gateways, and IoT systems.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
+      className={`${interTight.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground cursor-none-desktop">
-        <ScrollMood />
-        <div className="bg-grid fixed inset-0 -z-10" />
-        <div className="grain" />
-        <SmoothScroll>
-          <ScrollProgress />
-          <CustomCursor />
-          <SectionDots />
+      <head>
+        <noscript>
+          <style>{`.preloader{display:none!important}`}</style>
+        </noscript>
+      </head>
+      <body className="min-h-full font-sans">
+        <AppProvider>
+          <Preloader />
+          <Cursor />
           {children}
-        </SmoothScroll>
+        </AppProvider>
       </body>
     </html>
   );

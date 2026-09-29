@@ -1,8 +1,8 @@
-import Navbar from "@/components/Navbar";
+import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
+import FocusMarquee from "@/components/FocusMarquee";
 import Experience from "@/components/Experience";
-import Statement from "@/components/Statement";
 import Skills from "@/components/Skills";
 import Projects from "@/components/Projects";
 import Education from "@/components/Education";
@@ -12,12 +12,12 @@ import Footer from "@/components/Footer";
 export default function Home() {
   return (
     <>
-      <Navbar />
-      <main>
+      <Nav />
+      <main className="overflow-x-clip">
         <Hero />
         <About />
+        <FocusMarquee />
         <Experience />
-        <Statement />
         <Skills />
         <Projects />
         <Education />
