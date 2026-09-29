@@ -7,22 +7,30 @@ import { Reveal } from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
 import MagneticButton from "@/components/MagneticButton";
 import LinkedinIcon from "@/components/icons/LinkedinIcon";
+import GithubIcon from "@/components/icons/GithubIcon";
 
 const inputClass =
   "w-full rounded-xl border border-border bg-white/[0.03] px-4 py-3 text-sm text-foreground placeholder:text-muted/70 outline-none transition-colors focus:border-accent";
 
 export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
-  const [sent, setSent] = useState(false);
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const subject = encodeURIComponent(`Portfolio inquiry from ${form.name || "a visitor"}`);
-    const body = encodeURIComponent(
-      `${form.message}\n\n— ${form.name}${form.email ? ` (${form.email})` : ""}`,
-    );
-    window.location.href = `mailto:${profile.email}?subject=${subject}&body=${body}`;
-    setSent(true);
+    setStatus("sending");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error();
+      setStatus("sent");
+      setForm({ name: "", email: "", message: "" });
+    } catch {
+      setStatus("error");
+    }
   };
 
   return (
@@ -70,6 +78,18 @@ export default function Contact() {
                 </span>
                 <span className="text-sm text-foreground/85">LinkedIn profile</span>
               </a>
+              <a
+                href={profile.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-cursor-hover
+                className="glass flex items-center gap-4 rounded-xl p-4 transition-colors hover:border-accent/50"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-accent">
+                  <GithubIcon size={16} />
+                </span>
+                <span className="text-sm text-foreground/85">GitHub profile</span>
+              </a>
             </div>
           </Reveal>
 
@@ -113,12 +133,17 @@ export default function Contact() {
               <div className="mt-6 flex items-center gap-4">
                 <MagneticButton as="button">
                   <span className="font-display inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-background">
-                    Send message <Send size={14} />
+                    {status === "sending" ? "Sending…" : "Send message"} <Send size={14} />
                   </span>
                 </MagneticButton>
-                {sent && (
+                {status === "sent" && (
                   <span className="font-mono text-xs text-accent-3">
-                    Opening your email client…
+                    Message sent — I&apos;ll get back to you soon.
+                  </span>
+                )}
+                {status === "error" && (
+                  <span className="font-mono text-xs text-red-400">
+                    Something went wrong — email me directly at {profile.email}.
                   </span>
                 )}
               </div>

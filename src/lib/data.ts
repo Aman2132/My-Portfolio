@@ -5,6 +5,7 @@ export const profile = {
   phone: "9762303180",
   email: "aman.joshi6915@gmail.com",
   linkedin: "https://www.linkedin.com/in/aman-joshi-1a20a0252",
+  github: "https://github.com/Aman2132",
   summary:
     "Computer Engineering graduate with 2+ years of experience building production Java and Node.js backends, IoT systems, and modern frontends with Angular, React, and Next.js. I like owning things end to end — from schema and transaction logic to the pixels that ship.",
   longSummary:
@@ -83,6 +84,7 @@ export type Project = {
   tags: string[];
   status: "ongoing" | "complete";
   badge?: string;
+  url?: string;
 };
 
 export const projects: Project[] = [
@@ -99,6 +101,7 @@ export const projects: Project[] = [
     ],
     tags: ["React Native", "Expo", "TypeScript", "Zustand", "expo-location"],
     status: "ongoing",
+    url: "https://github.com/Aman2132/Site-tracker",
   },
   {
     name: "Employee Management System",
@@ -141,8 +144,20 @@ export const projects: Project[] = [
 ];
 
 export const skills = {
-  frontend: ["React", "Next.js", "Angular", "HTML", "CSS", "Bootstrap"],
-  backend: ["Java", "JDBC", "Node.js", "ExpressJS", "MySQL"],
+  frontend: ["JavaScript", "TypeScript", "React", "React Native", "Expo", "Next.js", "Angular", "HTML", "CSS", "Bootstrap"],
+  backend: [
+    "Java",
+    "JDBC",
+    "Node.js",
+    "ExpressJS",
+    "Fastify",
+    "MySQL",
+    "Graph Databases",
+    "Transaction Management",
+    "Payment Gateway Integration",
+    "IoT",
+    "Git",
+  ],
   soft: ["Teamwork", "Communication", "Public Speaking", "Decision-making", "Leadership"],
 };
 

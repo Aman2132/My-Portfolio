@@ -100,9 +100,9 @@ export default function Hero() {
         <h1 className="font-display text-5xl leading-[1.05] font-semibold tracking-tight sm:text-7xl lg:text-8xl">
           <span className="flex flex-wrap items-baseline gap-x-5">
             <SplitReveal text="Hi, I'm" stagger={0.05} />
-            <SplitReveal text={profile.name.split(" ")[0]} className="text-gradient" stagger={0.05} />
+            <SplitReveal text={profile.name} className="text-accent" stagger={0.05} />
           </span>
-          <SplitReveal text="I build for the web." stagger={0.028} />
+          <SplitReveal text="Full Stack Developer." stagger={0.028} />
         </h1>
 
         <motion.div
